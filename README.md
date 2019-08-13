@@ -1,1 +1,1 @@
-# ddp_app
+# Developing Data Products: Course Project
