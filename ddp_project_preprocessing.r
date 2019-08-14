@@ -59,9 +59,24 @@ wag <- paste0("https://raw.githubuse",
 
 wag <- read_csv(wag) %>%                              # Read in data
   rename(soc = OCC_CODE,
+         job = OCC_TITLE,
          mhr = H_MEDIAN,
          myr = A_MEDIAN) %>%                          # Rename vars
-  select(soc, mhr, myr)                               # Rm vars
+  select(soc, job, mhr, myr)                          # Rm vars
+
+
+
+seq <- as.character(11:53)                            # Init job cat seq
+wag$cat <- NA                                         # Init var "cat"
+
+for (i in seq_along(wag$soc)){
+  for (j in seq_along(seq)){
+    if (grepl(x = wag$soc[i], pattern = paste0(seq[j], "-[0-9]{4}$"))){
+      wag$cat[i] <- as.character(wag[wag$soc == paste0(seq[j], "-0000"), "job"])
+    }
+  }
+}                                                     # Assign categories
+
 
 all <- left_join(int, wag) %>%                        # Merge onet, bls
   filter(mhr != "*",
@@ -72,9 +87,11 @@ all <- left_join(int, wag) %>%                        # Merge onet, bls
          !is.na(myr)) %>%                             # Rm missing vals
   mutate(mhr = as.numeric(mhr),
          myr = gsub(",", "", myr),                    # Remove commas
-         myr = as.numeric(myr))                       # Wages to "numeric"
+         myr = as.numeric(myr),                       # Wages to "numeric"
+         cat = gsub(" Occupations$", "", cat)) %>%
+  select(cat, soc:myr)                                # Rearrange vars
 
-rm(int, wag)                                          # Rm objects
+rm(int, wag, i, j, seq)                               # Rm objects
 
 
 
@@ -92,3 +109,8 @@ ggplot(all, aes(x = val, y = myr)) +
                      label = c("$0", "$50", "$100", "$150", "$200")) +
   facet_wrap(~ elm) +
   theme_minimal()
+
+
+# WRITE TO .CSV
+
+write_csv(all, "onet_bls_mrg.csv")                      # Write to .CSV
