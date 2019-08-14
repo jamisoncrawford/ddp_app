@@ -111,6 +111,7 @@ ggplot(all, aes(x = val, y = myr)) +
   theme_minimal()
 
 
+
 # WRITE TO .CSV
 
 write_csv(all, "onet_bls_mrg.csv")                      # Write to .CSV
