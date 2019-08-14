@@ -112,6 +112,16 @@ ggplot(all, aes(x = val, y = myr)) +
 
 
 
+# UNTIDY DATA
+
+unt <- all %>%
+  spread(key = elm, value = val)                          # Spread vars
+
+names(unt) <- str_to_lower(names(unt))                    # Var names to lower
+
+
+
 # WRITE TO .CSV
 
-write_csv(all, "onet_bls_mrg.csv")                      # Write to .CSV
+write_csv(all, "onet_bls_merged.csv")                     # Write to .CSV
+write_csv(unt, "onet_bls_untidy.csv")
