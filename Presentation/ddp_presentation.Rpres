@@ -1,0 +1,178 @@
+Predicting Salaries with Holland Codes
+========================================================
+author: Jamison R. Crawford, MPA
+date: 14 August 2019
+autosize: true
+
+The Question
+========================================================
+
+<br>
+
+**Have you ever wondered:**
+
+## What careers best fit my personality?
+
+## How much do others like me earn each year?
+
+<br>
+
+**We have the data...**
+
+```{r echo=F, message=F, warning=F}
+# DEVELOPING DATA PRODUCTS: COURSE PROJECT
+
+    #' Date: 2019-08-13
+    #' R Version: 3.6.0
+    #' RStudio Version: 1.2.1335
+    #' Operating System: Windows 10
+
+
+
+# SET WORKING DIRECTORY
+
+wd <- paste0("~/Coursera/Data Science Specializat",
+             "ion (Johns Hopkins)/Course 9 - Deve",
+             "loping Data Products/Week 4 Project")   # Specify directory
+
+setwd(wd)                                             # Set directory
+
+rm(wd)                                                # Rm object
+
+
+
+# INSTALL & LOAD PACKAGES
+
+if(!require(readr)){install.packages("readr")}
+if(!require(dplyr)){install.packages("dplyr")}
+if(!require(tidyr)){install.packages("tidyr")}
+if(!require(ggplot2)){install.packages("ggplot2")}
+if(!require(kableExtra)){install.packages("kableExtra")}
+
+library(readr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(kableExtra)                                   # Load packages
+
+
+
+# READ IN & CLEAN: DOL O*NET INTERESTS & BLS WAGE DATA
+
+int <- paste0("https://raw.githubuser", 
+              "content.com/jamisoncra",
+              "wford/ddp_app/master/D",
+              "ata/onet_interests.csv")               # Specify onet url
+
+int <- read_csv(int) %>%                              # Read in data
+  rename(soc = `O*NET-SOC Code`,
+         job = Title,
+         elm = `Element Name`,
+         val = `Data Value`) %>%                      # Rename vars
+  select(soc, job, elm, val) %>%                      # Rm vars
+  filter(elm != "First Interest High-Point",
+         elm != "Second Interest High-Point",
+         elm != "Third Interest High-Point",          # Fltr non-elements
+         grepl(".*{8}00", soc)) %>%                   # Fltr non-detailed socs
+  mutate(soc = substr(soc, 1, 7))                     # Rm trailing ".00"
+
+wag <- paste0("https://raw.githubuse",
+              "rcontent.com/jamisonc",
+              "rawford/ddp_app/maste",
+              "r/Data/bls_wages.csv")                 # Specify bls url
+
+wag <- read_csv(wag) %>%                              # Read in data
+  rename(soc = OCC_CODE,
+         job = OCC_TITLE,
+         mhr = H_MEDIAN,
+         myr = A_MEDIAN) %>%                          # Rename vars
+  select(soc, job, mhr, myr)                          # Rm vars
+
+
+
+seq <- as.character(11:53)                            # Init job cat seq
+wag$cat <- NA                                         # Init var "cat"
+
+for (i in seq_along(wag$soc)){
+  for (j in seq_along(seq)){
+    if (grepl(x = wag$soc[i], pattern = paste0(seq[j], "-[0-9]{4}$"))){
+      wag$cat[i] <- as.character(wag[wag$soc == paste0(seq[j], "-0000"), "job"])
+    }
+  }
+}                                                     # Assign categories
+
+interest <- int
+salaries <- wag
+```
+
+The Data
+========================================================
+
+## The U.S. Department of Labor
+
+We can model the relationship between personality and salary.
+
+* Bureau of Labor Statistics
+    - [2018 National Occupational Employment & Wages](https://www.bls.gov/oes/current/oes_nat.htm#00-0000)
+* Occupational Information Network
+    - [O*NET 24.0 Database: "Content Model Interest"](https://www.onetcenter.org/dictionary/24.0/excel/interests.html)
+    
+Every occupation has a **Standard Occupational Classification**.
+
+O\*NET occupations have **Holland Codes**, i.e. 6 personality traits. 
+
+
+The Model
+========================================================
+
+```{r warning=F, message=F, echo=F}
+interest <- interest %>%
+  rename(SOC = soc,
+         `Title` = job,
+         `Holland Code` = elm,
+         `Value` = val)
+
+salaries <- salaries %>%
+  rename(SOC = soc,
+         `Title` = job,
+         Salary = myr) %>%
+  filter(SOC != "00-0000") %>%
+  mutate(Salary = paste0("$", Salary)) %>%
+  select(-cat, -mhr)
+
+mrg <- left_join(interest, salaries, by = c("SOC", "Title"))
+mrg <- spread(mrg, `Holland Code`, Value) %>%
+  rename(ar = Artistic,
+         co = Conventional,
+         en = Enterprising,
+         iv = Investigative,
+         re = Realistic, 
+         so = Social,
+         wage = Salary) %>%
+  mutate(wage = as.numeric(gsub("\\$|,", "", wage)))
+```
+
+Once joined, we model `wage` as a function of each Holland type.
+
+```{r}
+m <- lm(wage ~ ar + co + en + iv + re + so, mrg)
+```
+
+```{r}
+data.frame(m$coef)
+```
+
+The App
+========================================================
+
+In Shiny, users can predict salaries based on their Holland codes.
+
+<center>
+
+<iframe src="https://uruguayguy.shinyapps.io/shiny_app/" width="100%" height="425px"></iframe>
+
+<br>
+
+Visit the [app](https://uruguayguy.shinyapps.io/shiny_app/). View the [documentation](https://github.com/jamisoncrawford/ddp_app).
+
+</center>
