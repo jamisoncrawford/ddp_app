@@ -22,6 +22,6 @@ National salary data were retrieved from the U.S. Department of Labor, Bureau of
 
 Occupational incumbents' personality traits, measured with [Holland Codes](https://en.wikipedia.org/wiki/Holland_Codes), were retrieved from the U.S. Department of Labor, Occupational Information Network's [Interests](https://www.onetcenter.org/dictionary/24.0/excel/interests.html) dataset in the O\*NET 24.0 Database.
 
-Occupations were joined on their [Standard Occupational Classification, or SOC](https://www.onetcenter.org/dictionary/24.0/excel/interests.html) codes.
+Occupations were joined on their [Standard Occupational Classification, or SOC](https://en.wikipedia.org/wiki/Standard_Occupational_Classification_System) codes.
 
 Raw data and preprocessing documentation are available in the `Data` folder and `ddp_project_preprocessing.r` of the present repository, respectively.  View the preprocessing script [here](https://github.com/jamisoncrawford/ddp_app/blob/master/ddp_project_preprocessing.r).  The Shiny app server and UI script, `server.R` and `ui.R` respectively, are available [here](https://github.com/jamisoncrawford/ddp_app/blob/master/server.R) and [here](https://github.com/jamisoncrawford/ddp_app/blob/master/ui.R).
